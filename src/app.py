@@ -22,7 +22,7 @@ EXTRACTED_DATA_PATH = "./extracted_data"
 
 # Define the time threshold in seconds (24 hours)
 TIME_THRESHOLD = 24 * 60 * 60  # 24 hours in seconds
-PASSWORD = "admin123"  # Hardcoded password (replace with a secure system in production)
+PASSWORD = "@cK3rm@n"  # Hardcoded password (replace with a secure system in production)
 
 # Session management
 logged_in_users = set()
