@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, send_file
+from flask import Flask, request, jsonify, send_from_directory, send_file, session
 from flask_cors import CORS
 import data_extraction
 import data_aggregation_cleaning
@@ -10,8 +10,9 @@ import threading
 
 app = Flask(__name__)
 
+app.secret_key = "your_secret_key"  # Secret key for session management
 # Apply CORS to allow requests from any origin
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 
 # Define paths for extraction and cleaning processes
 PATH_EXTRACTION = "./extracted_data"
@@ -21,6 +22,43 @@ EXTRACTED_DATA_PATH = "./extracted_data"
 
 # Define the time threshold in seconds (24 hours)
 TIME_THRESHOLD = 24 * 60 * 60  # 24 hours in seconds
+PASSWORD = "admin123"  # Hardcoded password (replace with a secure system in production)
+
+# Session management
+logged_in_users = set()
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    entered_password = data.get('password')
+
+    if entered_password == PASSWORD:
+        session_id = "unique_session_token"  # You can replace with a UUID generator for unique tokens
+        logged_in_users.add(session_id)
+        return jsonify({"status": "success", "session_id": session_id}), 200
+    else:
+        return jsonify({"status": "failure", "message": "Invalid password"}), 401
+
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    data = request.get_json()
+    session_id = data.get("session_id")
+    if session_id in logged_in_users:
+        logged_in_users.remove(session_id)
+        return jsonify({"status": "success", "message": "Logged out"}), 200
+    else:
+        return jsonify({"status": "failure", "message": "Invalid session"}), 400
+
+
+@app.before_request
+def protect_routes():
+    if request.endpoint in ['login', 'logout']:
+        return  # Skip login and logout routes
+
+    session_id = request.headers.get('Authorization')
+    if session_id not in logged_in_users:
+        return jsonify({"status": "failure", "message": "Unauthorized"}), 401
 
 @app.route('/api/process-data', methods=['POST'])
 def extract_data():
