@@ -53,6 +53,8 @@ def logout():
 
 @app.before_request
 def protect_routes():
+    if request.method == 'OPTIONS':
+        return  # Allow preflight requests without checking authorization
     if request.endpoint in ['login', 'logout']:
         return  # Skip login and logout routes
 
