@@ -21,7 +21,8 @@ FINAL_CLEANED_PATH = "./final_cleaned_files"
 EXTRACTED_DATA_PATH = "./extracted_data"
 
 # Define the time threshold in seconds (24 hours)
-TIME_THRESHOLD = 24 * 60 * 60  # 24 hours in seconds
+# TIME_THRESHOLD = 24 * 60 * 60  # 24 hours in seconds
+TIME_THRESHOLD = 10 * 60  # 10 minutes in seconds
 PASSWORD = "@cK3rm@n"  # Hardcoded password (replace with a secure system in production)
 
 # Session management
@@ -82,21 +83,91 @@ def extract_data():
     data_aggregation_cleaning.file_reader(PATH_EXTRACTION, item_list)
     final_data_cleaning.file_reader_final_cleaning(PATH_CLEANING, item_list)
 
-    final_file_name = f"{item_list[0]}Cleaned_Final.csv"
-    final_file_path = os.path.join("./final_cleaned_files", final_file_name)
+    # Directory containing the generated files
+    final_cleaned_dir = "./final_cleaned_files"
+
+    # Get the latest file based on modification time
+    files = [f for f in os.listdir(final_cleaned_dir) if os.path.isfile(os.path.join(final_cleaned_dir, f))]
+    latest_file = max(files, key=lambda x: os.path.getmtime(os.path.join(final_cleaned_dir, x)))
+
+    latest_file_path = os.path.join(final_cleaned_dir, latest_file)
 
     return jsonify({
         "status": "200",
         "message": "Data processed successfully",
         "items": item_list,
-        "download_url": f"/api/download/{final_file_name}"  # Provide the download link
+        "download_url": f"/api/download/{latest_file}"  # Provide the download link for the latest file
     })
 
 
+# def extract_data():
+#     # Parse JSON input from the request
+#     data = request.get_json()
+#     input_category = data.get("inputCategory")
+#     input_string = data.get("inputString")
+#     item_list = [item.strip() for item in input_string.split(',')]
+
+#     if input_category == "P":
+#         data_extraction.country_extraction(item_list)
+#     elif input_category == "Y":
+#         data_extraction.year_extraction(item_list)
+#     elif input_category == "C":
+#         data_extraction.cause_of_death(item_list)
+#     elif input_category == "L":
+#         data_extraction.last_name(item_list)
+
+#     data_aggregation_cleaning.file_reader(PATH_EXTRACTION, item_list)
+#     final_data_cleaning.file_reader_final_cleaning(PATH_CLEANING, item_list)
+
+#     final_file_name = f"{item_list[0]}Cleaned_Final.csv"
+#     final_file_path = os.path.join("./final_cleaned_files", final_file_name)
+
+#     return jsonify({
+#         "status": "200",
+#         "message": "Data processed successfully",
+#         "items": item_list,
+#         "download_url": f"/api/download/{final_file_name}"  # Provide the download link
+#     })
+
+
+# @app.route('/api/download/<file_name>', methods=['GET'])
+# def download_file(file_name):
+#     # file_path = os.path.join("./final_cleaned_files", file_name)
+#     file_path = os.path.abspath(os.path.join(".", "final_cleaned_files", file_name))
+
+#     # Check if the file exists
+#     if os.path.exists(file_path):
+#         try:
+#             return send_file(file_path, as_attachment=True)
+#         except Exception as e:
+#             return jsonify({"status": "500", "message": f"Failed to download file: {str(e)}"})
+#     else:
+#         return jsonify({"status": "404", "message": "File not found"})
+    
+
 @app.route('/api/download/<file_name>', methods=['GET'])
 def download_file(file_name):
-    # file_path = os.path.join("./final_cleaned_files", file_name)
-    file_path = os.path.abspath(os.path.join(".", "final_cleaned_files", file_name))
+    # Directory containing the files
+    final_cleaned_dir = os.path.abspath("./final_cleaned_files")
+
+    # If no specific file is provided, determine the latest file
+    if file_name is None:
+        try:
+            files = [
+                f for f in os.listdir(final_cleaned_dir)
+                if os.path.isfile(os.path.join(final_cleaned_dir, f))
+            ]
+            if not files:
+                return jsonify({"status": "404", "message": "No files available for download"})
+
+            # Find the latest file based on modification time
+            latest_file = max(files, key=lambda x: os.path.getmtime(os.path.join(final_cleaned_dir, x)))
+            file_name = latest_file
+        except Exception as e:
+            return jsonify({"status": "500", "message": f"Error finding latest file: {str(e)}"})
+
+    # Construct the full file path
+    file_path = os.path.join(final_cleaned_dir, file_name)
 
     # Check if the file exists
     if os.path.exists(file_path):
@@ -106,7 +177,8 @@ def download_file(file_name):
             return jsonify({"status": "500", "message": f"Failed to download file: {str(e)}"})
     else:
         return jsonify({"status": "404", "message": "File not found"})
-    
+
+
 
 def delete_old_files():
     while True:
