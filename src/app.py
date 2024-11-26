@@ -187,7 +187,7 @@ def delete_old_files():
         # Delete files in EXTRACTED_DATA_PATH older than TIME_THRESHOLD seconds. #
         for filename in os.listdir(FINAL_CLEANED_PATH):
             file_path = os.path.join(FINAL_CLEANED_PATH, filename)
-            if os.path.isfile(file_path):
+            if os.path.isfile(file_path) and filename.endswith('.csv'):
                 file_creation_time = os.path.getctime(file_path)
                 # Delete file if it is older than the threshold
                 if now - file_creation_time > TIME_THRESHOLD:
@@ -197,7 +197,17 @@ def delete_old_files():
         # Check for files in EXTRACTED_DATA older than TIME_THRESHOLD seconds
         for filename in os.listdir(EXTRACTED_DATA_PATH):
             file_path = os.path.join(EXTRACTED_DATA_PATH, filename)
-            if os.path.isfile(file_path):
+            if os.path.isfile(file_path) and filename.endswith('.csv'):
+                file_creation_time = os.path.getctime(file_path)
+                # Delete file if it is older than the threshold
+                if now - file_creation_time > TIME_THRESHOLD:
+                    os.remove(file_path)
+                    print(f"Deleted old file: {filename}")
+
+        # Check for files in PATH_CLEANING older than TIME_THRESHOLD seconds
+        for filename in os.listdir(PATH_CLEANING):
+            file_path = os.path.join(PATH_CLEANING, filename)
+            if os.path.isfile(file_path) and filename.endswith('.csv'):
                 file_creation_time = os.path.getctime(file_path)
                 # Delete file if it is older than the threshold
                 if now - file_creation_time > TIME_THRESHOLD:
