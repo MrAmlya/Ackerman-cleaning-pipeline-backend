@@ -1,2 +1,4 @@
 pandas
 numpy
+flask_cors
+flask
