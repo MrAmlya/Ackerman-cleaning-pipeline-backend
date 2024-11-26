@@ -111,7 +111,7 @@ def file_reader_final_cleaning(path,lst):
             # print(file_name_without_extension)
             if file_name_without_extension in lst:
                 try:
-                    print("Starting for",file_name_without_extension)
+                    print("Cleaning starting for",file_name_without_extension)
         #             country_name = extract_country_name(item)
                     df = pd.read_csv(csv_read)
                     df = process_dataframe(df)

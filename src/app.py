@@ -23,45 +23,6 @@ EXTRACTED_DATA_PATH = "./extracted_data"
 # Define the time threshold in seconds (24 hours)
 # TIME_THRESHOLD = 24 * 60 * 60  # 24 hours in seconds
 TIME_THRESHOLD = 10 * 60  # 10 minutes in seconds
-PASSWORD = "@cK3rm@n"  # Hardcoded password (replace with a secure system in production)
-
-# Session management
-logged_in_users = set()
-
-@app.route('/api/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    entered_password = data.get('password')
-
-    if entered_password == PASSWORD:
-        session_id = "unique_session_token"  # You can replace with a UUID generator for unique tokens
-        logged_in_users.add(session_id)
-        return jsonify({"status": "success", "session_id": session_id}), 200
-    else:
-        return jsonify({"status": "failure", "message": "Invalid password"}), 401
-
-
-@app.route('/api/logout', methods=['POST'])
-def logout():
-    data = request.get_json()
-    session_id = data.get("session_id")
-    if session_id in logged_in_users:
-        logged_in_users.remove(session_id)
-        return jsonify({"status": "success", "message": "Logged out"}), 200
-    else:
-        return jsonify({"status": "failure", "message": "Invalid session"}), 400
-
-
-@app.before_request
-def protect_routes():
-    if request.method == 'OPTIONS':
-        return  # Allow preflight requests without checking authorization
-    if request.endpoint in ['login', 'logout']:
-        return  # Skip login and logout routes
-
-    session_id = request.headers.get('Authorization')
-    if session_id not in logged_in_users:
-        return jsonify({"status": "failure", "message": "Unauthorized"}), 401
 
 @app.route('/api/process-data', methods=['POST'])
 def extract_data():
